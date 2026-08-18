@@ -1,0 +1,59 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-50">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    class="w-full max-w-sm space-y-4 rounded-lg bg-white p-8 shadow"
+  >
+    <h1 class="text-xl font-semibold text-gray-900">Create account</h1>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700" for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700" for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700" for="role">Role</label>
+      <select
+        id="role"
+        formControlName="role"
+        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none"
+      >
+        @for (role of roles; track role) {
+          <option [value]="role">{{ role }}</option>
+        }
+      </select>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+    }
+
+    <button
+      type="submit"
+      [disabled]="form.invalid || submitting()"
+      class="w-full rounded-md bg-indigo-600 px-4 py-2 font-medium text-white disabled:opacity-50"
+    >
+      {{ submitting() ? 'Creating account…' : 'Create account' }}
+    </button>
+
+    <p class="text-center text-sm text-gray-600">
+      Already have an account?
+      <a routerLink="/login" class="font-medium text-indigo-600 hover:underline">Sign in</a>
+    </p>
+  </form>
+</div>
