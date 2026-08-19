@@ -1,0 +1,11 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-50">
+  <div class="max-w-sm space-y-3 rounded-lg bg-white p-8 text-center shadow">
+    @if (success()) {
+      <h1 class="text-xl font-semibold text-green-700">Gmail connected</h1>
+      <p class="text-gray-600">Your Gmail inbox is now linked. Redirecting to the dashboard…</p>
+    } @else {
+      <h1 class="text-xl font-semibold text-red-700">Connection failed</h1>
+      <p class="text-gray-600">We couldn't connect your Gmail account. Redirecting to the dashboard…</p>
+    }
+  </div>
+</div>

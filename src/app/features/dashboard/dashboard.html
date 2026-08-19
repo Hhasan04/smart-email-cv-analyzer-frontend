@@ -3,4 +3,36 @@
   @if (authService.currentUser(); as user) {
     <p class="mt-2 text-gray-600">Signed in as {{ user.email }} ({{ user.role }})</p>
   }
+
+  <section class="mt-8 max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="text-lg font-semibold text-gray-900">Integrations</h2>
+
+    @if (gmailService.status(); as status) {
+      <div class="mt-3 flex items-center gap-2">
+        <span
+          class="h-2.5 w-2.5 rounded-full"
+          [class.bg-green-500]="status.connected"
+          [class.bg-gray-300]="!status.connected"
+        ></span>
+        <span class="text-sm text-gray-700">
+          Gmail: {{ status.connected ? 'Connected' : 'Disconnected' }}
+          @if (status.connected && status.gmailAddress) {
+            <span class="text-gray-500">({{ status.gmailAddress }})</span>
+          }
+        </span>
+      </div>
+
+      @if (!status.connected) {
+        <button
+          type="button"
+          (click)="connectGmail()"
+          class="mt-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Connect Gmail Inbox
+        </button>
+      }
+    } @else {
+      <p class="mt-3 text-sm text-gray-500">Checking Gmail connection…</p>
+    }
+  </section>
 </div>

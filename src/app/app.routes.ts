@@ -16,4 +16,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  {
+    path: 'auth/google/callback',
+    loadComponent: () =>
+      import('./features/google-callback/google-callback').then((m) => m.GoogleCallback),
+  },
 ];
