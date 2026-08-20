@@ -1,9 +1,18 @@
+export type CandidateStatus = 'PENDING_REVIEW' | 'ACCEPTED' | 'REJECTED';
+
+export interface ScoreBreakdown {
+  skillsScore: number;
+  experienceScore: number;
+  educationScore: number;
+}
+
 export interface CvAnalysis {
   id: string;
   matchScore: number;
   matchingSkills: string[];
   missingSkills: string[];
   summaryText: string;
+  scoreBreakdown: ScoreBreakdown | null;
   createdAt: string;
 }
 
@@ -28,6 +37,7 @@ export interface Candidate {
   phone: string | null;
   parsedCvText: string | null;
   resumeFileName: string | null;
+  status: CandidateStatus;
   jobPositionId: string | null;
   jobPosition: CandidateJobPosition | null;
   cvAnalyses: CvAnalysis[];
@@ -48,4 +58,9 @@ export interface PaginatedCandidates {
 export interface CandidateFilters {
   jobPositionId?: string;
   minScore?: number;
+}
+
+export interface BulkRejectResult {
+  sent: string[];
+  failed: string[];
 }

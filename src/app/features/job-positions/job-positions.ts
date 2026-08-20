@@ -7,6 +7,10 @@ import { NavBar } from '../../shared/nav-bar/nav-bar';
 
 type SkillType = 'required' | 'preferred';
 
+const DEFAULT_SKILLS_WEIGHT = 50;
+const DEFAULT_EXPERIENCE_WEIGHT = 30;
+const DEFAULT_EDUCATION_WEIGHT = 20;
+
 @Component({
   selector: 'app-job-positions',
   standalone: true,
@@ -30,10 +34,26 @@ export class JobPositions implements OnInit {
   readonly skillInput = signal('');
   readonly skillType = signal<SkillType>('required');
 
+  readonly skillsWeight = signal(DEFAULT_SKILLS_WEIGHT);
+  readonly experienceWeight = signal(DEFAULT_EXPERIENCE_WEIGHT);
+  readonly educationWeight = signal(DEFAULT_EDUCATION_WEIGHT);
+
+  readonly weightTotal = computed(
+    () => this.skillsWeight() + this.experienceWeight() + this.educationWeight(),
+  );
+
+  readonly weightStatus = computed<'over' | 'under' | 'valid'>(() => {
+    const total = this.weightTotal();
+    if (total > 100) return 'over';
+    if (total < 100) return 'under';
+    return 'valid';
+  });
+
   readonly form = this.fb.nonNullable.group({
     title: ['', [Validators.required]],
     description: ['', [Validators.required]],
     isActive: [true],
+    customPromptTemplate: [''],
   });
 
   ngOnInit(): void {
@@ -66,8 +86,20 @@ export class JobPositions implements OnInit {
     target.update((skills) => skills.filter((s) => s !== skill));
   }
 
+  onSkillsWeightChange(event: Event): void {
+    this.skillsWeight.set(Number((event.target as HTMLInputElement).value));
+  }
+
+  onExperienceWeightChange(event: Event): void {
+    this.experienceWeight.set(Number((event.target as HTMLInputElement).value));
+  }
+
+  onEducationWeightChange(event: Event): void {
+    this.educationWeight.set(Number((event.target as HTMLInputElement).value));
+  }
+
   submit(): void {
-    if (this.form.invalid || this.submitting()) {
+    if (this.form.invalid || this.submitting() || this.weightStatus() !== 'valid') {
       return;
     }
 
@@ -81,6 +113,10 @@ export class JobPositions implements OnInit {
       requiredSkills: this.requiredSkills(),
       preferredSkills: this.preferredSkills(),
       isActive: raw.isActive,
+      skillsWeight: this.skillsWeight(),
+      experienceWeight: this.experienceWeight(),
+      educationWeight: this.educationWeight(),
+      customPromptTemplate: raw.customPromptTemplate.trim() || undefined,
     };
 
     const request = this.editingId()
@@ -105,9 +141,13 @@ export class JobPositions implements OnInit {
       title: jobPosition.title,
       description: jobPosition.description,
       isActive: jobPosition.isActive,
+      customPromptTemplate: jobPosition.customPromptTemplate ?? '',
     });
     this.requiredSkills.set([...jobPosition.requiredSkills]);
     this.preferredSkills.set([...jobPosition.preferredSkills]);
+    this.skillsWeight.set(jobPosition.skillsWeight);
+    this.experienceWeight.set(jobPosition.experienceWeight);
+    this.educationWeight.set(jobPosition.educationWeight);
   }
 
   cancelEdit(): void {
@@ -127,9 +167,12 @@ export class JobPositions implements OnInit {
 
   private resetForm(): void {
     this.editingId.set(null);
-    this.form.reset({ title: '', description: '', isActive: true });
+    this.form.reset({ title: '', description: '', isActive: true, customPromptTemplate: '' });
     this.requiredSkills.set([]);
     this.preferredSkills.set([]);
     this.skillInput.set('');
+    this.skillsWeight.set(DEFAULT_SKILLS_WEIGHT);
+    this.experienceWeight.set(DEFAULT_EXPERIENCE_WEIGHT);
+    this.educationWeight.set(DEFAULT_EDUCATION_WEIGHT);
   }
 }

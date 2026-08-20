@@ -5,6 +5,10 @@ export interface JobPosition {
   requiredSkills: string[];
   preferredSkills: string[];
   isActive: boolean;
+  skillsWeight: number;
+  experienceWeight: number;
+  educationWeight: number;
+  customPromptTemplate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,6 +19,10 @@ export interface CreateJobPositionPayload {
   requiredSkills: string[];
   preferredSkills: string[];
   isActive?: boolean;
+  skillsWeight?: number;
+  experienceWeight?: number;
+  educationWeight?: number;
+  customPromptTemplate?: string;
 }
 
 export type UpdateJobPositionPayload = Partial<CreateJobPositionPayload>;

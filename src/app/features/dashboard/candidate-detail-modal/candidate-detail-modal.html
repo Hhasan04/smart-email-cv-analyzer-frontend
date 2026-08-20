@@ -13,6 +13,20 @@
           @if (candidate.jobPosition) {
             <p class="mt-1 text-sm text-gray-500">Applying for: {{ candidate.jobPosition.title }}</p>
           }
+          <div class="mt-2 flex items-center gap-2">
+            <label class="text-xs font-medium text-gray-500" for="statusSelect">Status</label>
+            <select
+              id="statusSelect"
+              [value]="candidate.status"
+              (change)="onStatusChange($event)"
+              [disabled]="updatingStatus()"
+              class="rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="PENDING_REVIEW">Pending review</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
         </div>
         <div class="flex items-center gap-3">
           @if (isAdmin()) {
@@ -44,6 +58,14 @@
 
           <p class="mt-3 text-sm text-gray-700">{{ analysis.summaryText }}</p>
 
+          @if (analysis.scoreBreakdown; as breakdown) {
+            <div class="mt-3 flex gap-4 text-xs text-gray-600">
+              <span>Skills: {{ breakdown.skillsScore }}%</span>
+              <span>Experience: {{ breakdown.experienceScore }}%</span>
+              <span>Education: {{ breakdown.educationScore }}%</span>
+            </div>
+          }
+
           @if (analysis.matchingSkills.length > 0) {
             <div class="mt-4">
               <h3 class="text-xs font-semibold uppercase text-gray-500">Matched skills</h3>
@@ -72,6 +94,42 @@
         </p>
       }
 
+      <div class="mt-5 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-4">
+        <select
+          [value]="reevaluateTargetId()"
+          (change)="onReevaluateTargetChange($event)"
+          class="rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+        >
+          <option value="">Re-evaluate for…</option>
+          @for (jobPosition of jobPositions(); track jobPosition.id) {
+            <option [value]="jobPosition.id">{{ jobPosition.title }}</option>
+          }
+        </select>
+        <button
+          type="button"
+          (click)="reevaluate()"
+          [disabled]="!reevaluateTargetId() || reevaluating()"
+          class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {{ reevaluating() ? 'Re-evaluating…' : 'Re-evaluate for another job' }}
+        </button>
+
+        <button
+          type="button"
+          (click)="openComposer()"
+          class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Send email
+        </button>
+      </div>
+
+      @if (reevaluateMessage()) {
+        <p class="mt-2 text-sm text-green-700">{{ reevaluateMessage() }}</p>
+      }
+      @if (reevaluateError()) {
+        <p class="mt-2 text-sm text-red-600">{{ reevaluateError() }}</p>
+      }
+
       @if (candidate.emailMetadata.length > 0) {
         <div class="mt-5">
           <h3 class="text-xs font-semibold uppercase text-gray-500">Email body</h3>
@@ -97,3 +155,15 @@
     }
   </div>
 </div>
+
+@if (showComposer()) {
+  <app-email-composer-modal
+    title="Send email"
+    [initialSubject]="composerSubject()"
+    [initialBody]="composerBody()"
+    [submitting]="sendingEmail()"
+    [sendError]="sendEmailError()"
+    (close)="closeComposer()"
+    (send)="sendEmail($event)"
+  />
+}

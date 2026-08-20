@@ -94,41 +94,111 @@
       />
     </div>
 
-    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      @for (candidate of candidatesService.filteredCandidates(); track candidate.id) {
-        <button
-          type="button"
-          (click)="openCandidate(candidate.id)"
-          class="rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm hover:border-indigo-300"
-        >
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <h3 class="font-medium text-gray-900">{{ candidate.fullName }}</h3>
-              <p class="text-xs text-gray-500">{{ candidate.email }}</p>
-            </div>
-            @let analysis = latestAnalysis(candidate.cvAnalyses);
-            <span
-              class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-              [class]="scoreBadgeClasses(analysis ? analysis.matchScore : null)"
-            >
-              {{ analysis ? analysis.matchScore + '%' : 'Pending' }}
-            </span>
-          </div>
-          @if (candidate.jobPosition) {
-            <p class="mt-2 text-xs text-gray-500">{{ candidate.jobPosition.title }}</p>
+    <div class="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="w-10 px-4 py-2">
+              <input
+                type="checkbox"
+                [checked]="allVisibleSelected()"
+                (change)="toggleSelectAll()"
+                aria-label="Select all candidates"
+              />
+            </th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500">Candidate</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500">Job</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500">Score</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (candidate of candidatesService.filteredCandidates(); track candidate.id) {
+            <tr (click)="openCandidate(candidate.id)" class="cursor-pointer hover:bg-gray-50">
+              <td class="px-4 py-3">
+                <input
+                  type="checkbox"
+                  [checked]="candidatesService.selectedIds().has(candidate.id)"
+                  (click)="toggleSelect(candidate.id, $event)"
+                  [attr.aria-label]="'Select ' + candidate.fullName"
+                />
+              </td>
+              <td class="px-4 py-3">
+                <div class="font-medium text-gray-900">{{ candidate.fullName }}</div>
+                <div class="text-xs text-gray-500">{{ candidate.email }}</div>
+              </td>
+              <td class="px-4 py-3 text-gray-600">{{ candidate.jobPosition?.title ?? '—' }}</td>
+              <td class="px-4 py-3">
+                @let analysis = latestAnalysis(candidate.cvAnalyses);
+                <span
+                  class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  [class]="scoreBadgeClasses(analysis ? analysis.matchScore : null)"
+                >
+                  {{ analysis ? analysis.matchScore + '%' : 'Pending' }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  [class.bg-gray-100]="candidate.status === 'PENDING_REVIEW'"
+                  [class.text-gray-600]="candidate.status === 'PENDING_REVIEW'"
+                  [class.bg-green-100]="candidate.status === 'ACCEPTED'"
+                  [class.text-green-800]="candidate.status === 'ACCEPTED'"
+                  [class.bg-red-100]="candidate.status === 'REJECTED'"
+                  [class.text-red-800]="candidate.status === 'REJECTED'"
+                >
+                  {{ candidate.status }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">No candidates yet.</td>
+            </tr>
           }
-        </button>
-      } @empty {
-        <p class="text-sm text-gray-500">No candidates yet.</p>
-      }
+        </tbody>
+      </table>
     </div>
   </section>
+
+  @if (candidatesService.selectedIds().size > 0) {
+    <div class="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-4 rounded-lg bg-gray-900 px-5 py-3 text-white shadow-lg">
+      <span class="text-sm">{{ candidatesService.selectedIds().size }} selected</span>
+      <button
+        type="button"
+        (click)="openRejectionComposer()"
+        class="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium hover:bg-red-700"
+      >
+        Send Rejection Email
+      </button>
+      <button
+        type="button"
+        (click)="candidatesService.clearSelection()"
+        class="text-sm text-gray-300 hover:text-white"
+      >
+        Clear
+      </button>
+    </div>
+  }
 
   @if (selectedCandidateId(); as candidateId) {
     <app-candidate-detail-modal
       [candidateId]="candidateId"
       (close)="closeCandidateModal()"
       (deleted)="closeCandidateModal()"
+      (reevaluated)="onCandidateReevaluated()"
+    />
+  }
+
+  @if (showRejectionComposer()) {
+    <app-email-composer-modal
+      title="Send Rejection Email"
+      [initialSubject]="rejectionSubject()"
+      [initialBody]="rejectionBody()"
+      [submitting]="rejecting()"
+      [sendError]="rejectError()"
+      (close)="closeRejectionComposer()"
+      (send)="submitBulkReject($event)"
     />
   }
 </div>
