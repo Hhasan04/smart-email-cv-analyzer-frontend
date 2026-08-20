@@ -5,4 +5,5 @@ export interface GoogleAuthUrl {
 export interface GmailStatus {
   connected: boolean;
   gmailAddress: string | null;
+  watching: boolean;
 }

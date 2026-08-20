@@ -21,6 +21,10 @@ export class GmailService {
     return this.http.get<GoogleAuthUrl>(`${environment.apiUrl}/auth/google/url`);
   }
 
+  startWatch(): Observable<{ historyId: string }> {
+    return this.http.post<{ historyId: string }>(`${environment.apiUrl}/gmail/watch`, {});
+  }
+
   connect(): void {
     this.getAuthUrl().subscribe((result) => {
       window.location.href = result.url;

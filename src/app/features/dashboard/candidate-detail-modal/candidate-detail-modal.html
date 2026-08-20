@@ -1,0 +1,99 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="close.emit()">
+  <div
+    class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
+    (click)="$event.stopPropagation()"
+  >
+    @if (loading()) {
+      <p class="text-sm text-gray-500">Loading candidate…</p>
+    } @else if (detail(); as candidate) {
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">{{ candidate.fullName }}</h2>
+          <p class="text-sm text-gray-600">{{ candidate.email }}</p>
+          @if (candidate.jobPosition) {
+            <p class="mt-1 text-sm text-gray-500">Applying for: {{ candidate.jobPosition.title }}</p>
+          }
+        </div>
+        <div class="flex items-center gap-3">
+          @if (isAdmin()) {
+            <button
+              type="button"
+              (click)="remove()"
+              [disabled]="deleting()"
+              class="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
+            >
+              {{ deleting() ? 'Deleting…' : 'Delete' }}
+            </button>
+          }
+          <button type="button" (click)="close.emit()" class="text-gray-400 hover:text-gray-600" aria-label="Close">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      @if (latestAnalysis(candidate.cvAnalyses); as analysis) {
+        <div class="mt-5 rounded-lg border border-gray-200 p-4">
+          <div class="flex items-center gap-2">
+            <span
+              class="rounded-full px-3 py-1 text-sm font-semibold"
+              [class]="scoreBadgeClasses(analysis.matchScore)"
+            >
+              {{ analysis.matchScore }}% match
+            </span>
+          </div>
+
+          <p class="mt-3 text-sm text-gray-700">{{ analysis.summaryText }}</p>
+
+          @if (analysis.matchingSkills.length > 0) {
+            <div class="mt-4">
+              <h3 class="text-xs font-semibold uppercase text-gray-500">Matched skills</h3>
+              <div class="mt-1.5 flex flex-wrap gap-1.5">
+                @for (skill of analysis.matchingSkills; track skill) {
+                  <span class="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700">{{ skill }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (analysis.missingSkills.length > 0) {
+            <div class="mt-4">
+              <h3 class="text-xs font-semibold uppercase text-gray-500">Missing skills</h3>
+              <div class="mt-1.5 flex flex-wrap gap-1.5">
+                @for (skill of analysis.missingSkills; track skill) {
+                  <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">{{ skill }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="mt-5 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+          This candidate hasn't been scored yet.
+        </p>
+      }
+
+      @if (candidate.emailMetadata.length > 0) {
+        <div class="mt-5">
+          <h3 class="text-xs font-semibold uppercase text-gray-500">Email body</h3>
+          <p class="mt-1.5 whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-sm text-gray-700">
+            {{ candidate.emailMetadata[0].bodyText }}
+          </p>
+        </div>
+      }
+
+      @if (candidate.resumeFileName) {
+        <div class="mt-5">
+          <h3 class="text-xs font-semibold uppercase text-gray-500">Resume</h3>
+          <button
+            type="button"
+            (click)="viewResume()"
+            [disabled]="loadingResume()"
+            class="mt-1.5 flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {{ loadingResume() ? 'Opening…' : candidate.resumeFileName }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

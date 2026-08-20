@@ -17,6 +17,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
   {
+    path: 'jobs',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/job-positions/job-positions').then((m) => m.JobPositions),
+  },
+  {
     path: 'auth/google/callback',
     loadComponent: () =>
       import('./features/google-callback/google-callback').then((m) => m.GoogleCallback),

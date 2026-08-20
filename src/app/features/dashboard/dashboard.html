@@ -1,8 +1,6 @@
+<app-nav-bar />
 <div class="p-8">
   <h1 class="text-xl font-semibold text-gray-900">Dashboard</h1>
-  @if (authService.currentUser(); as user) {
-    <p class="mt-2 text-gray-600">Signed in as {{ user.email }} ({{ user.role }})</p>
-  }
 
   <section class="mt-8 max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
     <h2 class="text-lg font-semibold text-gray-900">Integrations</h2>
@@ -22,6 +20,23 @@
         </span>
       </div>
 
+      @if (status.connected) {
+        <div class="mt-3 flex items-center gap-2">
+          <span
+            class="h-2.5 w-2.5 rounded-full"
+            [class.bg-green-500]="status.watching"
+            [class.bg-gray-300]="!status.watching"
+          ></span>
+          <span class="text-sm text-gray-700">
+            Inbox watch: {{ status.watching ? 'Active' : 'Not started' }}
+          </span>
+        </div>
+      }
+
+      @if (watchError()) {
+        <p class="mt-2 text-sm text-red-600">{{ watchError() }}</p>
+      }
+
       @if (!status.connected) {
         <button
           type="button"
@@ -30,9 +45,90 @@
         >
           Connect Gmail Inbox
         </button>
+      } @else if (!status.watching) {
+        <button
+          type="button"
+          (click)="startWatch()"
+          [disabled]="startingWatch()"
+          class="mt-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {{ startingWatch() ? 'Starting…' : 'Start watching inbox' }}
+        </button>
+      }
+
+      @if (status.connected) {
+        <button
+          type="button"
+          (click)="connectGmail()"
+          class="mt-2 block text-xs font-medium text-gray-500 hover:text-indigo-600 hover:underline"
+        >
+          Reconnect / grant additional permissions
+        </button>
       }
     } @else {
       <p class="mt-3 text-sm text-gray-500">Checking Gmail connection…</p>
     }
   </section>
+
+  <section class="mt-8">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">Candidates</h2>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-3">
+      <select
+        (change)="onJobPositionFilterChange($event)"
+        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+      >
+        <option value="">All job positions</option>
+        @for (jobPosition of jobPositionsService.jobPositions(); track jobPosition.id) {
+          <option [value]="jobPosition.id">{{ jobPosition.title }}</option>
+        }
+      </select>
+
+      <input
+        type="text"
+        placeholder="Search by candidate name…"
+        (input)="onSearchInput($event)"
+        class="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+      />
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (candidate of candidatesService.filteredCandidates(); track candidate.id) {
+        <button
+          type="button"
+          (click)="openCandidate(candidate.id)"
+          class="rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm hover:border-indigo-300"
+        >
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="font-medium text-gray-900">{{ candidate.fullName }}</h3>
+              <p class="text-xs text-gray-500">{{ candidate.email }}</p>
+            </div>
+            @let analysis = latestAnalysis(candidate.cvAnalyses);
+            <span
+              class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+              [class]="scoreBadgeClasses(analysis ? analysis.matchScore : null)"
+            >
+              {{ analysis ? analysis.matchScore + '%' : 'Pending' }}
+            </span>
+          </div>
+          @if (candidate.jobPosition) {
+            <p class="mt-2 text-xs text-gray-500">{{ candidate.jobPosition.title }}</p>
+          }
+        </button>
+      } @empty {
+        <p class="text-sm text-gray-500">No candidates yet.</p>
+      }
+    </div>
+  </section>
+
+  @if (selectedCandidateId(); as candidateId) {
+    <app-candidate-detail-modal
+      [candidateId]="candidateId"
+      (close)="closeCandidateModal()"
+      (deleted)="closeCandidateModal()"
+    />
+  }
 </div>

@@ -1,0 +1,18 @@
+<nav class="flex items-center justify-between border-b border-gray-200 bg-white px-8 py-4">
+  <div class="flex items-center gap-6">
+    <a routerLink="/dashboard" class="text-sm font-medium text-gray-700 hover:text-indigo-600">Dashboard</a>
+    <a routerLink="/jobs" class="text-sm font-medium text-gray-700 hover:text-indigo-600">Job Positions</a>
+  </div>
+  <div class="flex items-center gap-4">
+    @if (currentUser(); as user) {
+      <span class="text-sm text-gray-500">{{ user.email }} ({{ user.role }})</span>
+    }
+    <button
+      type="button"
+      (click)="logout()"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >
+      Log out
+    </button>
+  </div>
+</nav>
